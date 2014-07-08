@@ -56,6 +56,7 @@ function handlePrompt(err, cmd) {
     switch (cmd) {
       case '!update':
         startUpdate();
+        return;
         break;
       case '!more':
         searchPeople(parts[1], {more: true});
