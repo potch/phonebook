@@ -9,7 +9,7 @@ var opts = require("nomnom").parse();
 
 var bookPath = path.join(__dirname, 'phonebook.json');
 
-var query = opts[0];
+var query = opts._.join(' ');
 
 var book;
 
