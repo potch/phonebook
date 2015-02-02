@@ -14,7 +14,7 @@
 > phonebook
 loaded 1273 records
 last updated 69 hours ago
-phonebook: phonebook: potch
+phonebook: phonebook: Jones
 Bob Jones
 ...
 1 person found
