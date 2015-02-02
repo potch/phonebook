@@ -1,5 +1,11 @@
 # phonebook
 
+Installation:
+
+```sh
+> npm install -g moz-phonebook
+```
+
 Usage:
 ```sh
 # search
