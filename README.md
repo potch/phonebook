@@ -1,12 +1,11 @@
 # phonebook
 
-Installation:
-
+## Installation:
 ```sh
 > npm install -g moz-phonebook
 ```
 
-Usage:
+## Usage:
 ```sh
 # search
 > phonebook potch
