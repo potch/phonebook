@@ -8,6 +8,9 @@ var chalk = require('chalk');
 var opts = require("nomnom").parse();
 
 var bookPath = path.join(__dirname, 'phonebook.json');
+var d = new Date();
+var dstring = d.getFullYear().toString() + ('0' + (d.getMonth() + 1)).substr(-2) + ('0' + (d.getDate() + 1)).substr(-2);
+var todayPath = path.join(__dirname, 'phonebook.' + dstring + '.json');
 
 var query = opts._.join(' ');
 
@@ -102,6 +105,7 @@ function updateData(err, result) {
           timestamp: Date.now()
         };
         console.error('loaded ' + book.count + ' records');
+        fs.writeFile(todayPath, JSON.stringify(book, null, 2));
         fs.writeFile(bookPath, JSON.stringify(book, null, 2), function (error) {
           if (error) {
             console.log('error writing data!');

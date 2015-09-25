@@ -1,0 +1,43 @@
+div {
+  background: #fff;
+  line-height: 2em;
+  text-align: center;
+  position: sticky;
+}
+.manager > div {
+  font-weight: bold;
+}
+[data-depth="1"] > div {
+  top: 0em;
+  z-index: 10;
+}
+[data-depth="2"] > div {
+  top: 2em;
+  z-index: 9;
+}
+[data-depth="3"] > div {
+  top: 4em;
+  z-index: 8;
+}
+[data-depth="4"] > div {
+  top: 6em;
+  z-index: 7;
+}
+[data-depth="5"] > div {
+  top: 8em;
+  z-index: 6;
+}
+[data-depth="6"] > div {
+  top: 10em;
+  z-index: 5;
+}
+[data-depth="7"] > div {
+  top: 12em;
+  z-index: 4;
+}
+
+
+ul {
+  padding: 0;
+  list-style-type: none;
+}
