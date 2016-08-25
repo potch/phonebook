@@ -1,13 +1,17 @@
-var oldOrg = require('./phonebook.20150617.json');
+var oldOrg = require('./phonebook.20160507.json');
 var latestOrg = require('./phonebook.json');
 
 oldDate = new Date(oldOrg.timestamp);
 latestDate = new Date(latestOrg.timestamp);
 
 function process(org) {
-  org.forEach(function (e) {
+  org.lookup = org.staff.reduce(function (obj, cur) {
+    obj[cur.dn] = cur;
+    return obj;
+  }, {});
+  org.staff.forEach(function (e) {
     e.reports = 0;
-    org.forEach(function (f) {
+    org.staff.forEach(function (f) {
       if (e.manager && e.manager.dn === f.dn) {
         e.manager.obj = f;
       }
@@ -25,8 +29,27 @@ function iso(d) {
 oldDate = iso(oldDate);
 latestDate = iso(latestDate);
 
-var latest = process(latestOrg.staff);
-var old = process(oldOrg.staff);
+var latest = process(latestOrg).staff;
+var old = process(oldOrg).staff;
+old = old.filter(function (e) {
+  if (e.employeetype[1] && e.employeetype[1].match(/intern/i)) {
+    return false;
+  }
+  if (e.title && e.title.match(/intern/i)) {
+    return false;
+  }
+  return true;
+});
+
+latest = latest.filter(function (e) {
+  if (e.employeetype[1] && e.employeetype[1].match(/intern/i)) {
+    return false;
+  }
+  if (e.title && e.title.match(/intern/i)) {
+    return false;
+  }
+  return true;
+});
 
 console.log('# Org changes from ' + oldDate + ' to ' + latestDate);
 
@@ -37,9 +60,6 @@ var reports = [];
 var exist = {};
 
 old.forEach(function (e) {
-  if (e.employeetype[1] === 'Intern') {
-    return;
-  }
   var f;
   exist[e.dn] = true;
   latest.forEach(function (t) {
@@ -60,9 +80,6 @@ old.forEach(function (e) {
 });
 
 latest.forEach(function (e) {
-  if (e.employeetype[1] === 'Intern') {
-    return;
-  }
   if (!exist[e.dn]) {
     hires.push([e.cn, e.deptname || ' *none* ', (e.manager && e.manager.cn) || '']);
   }
@@ -89,17 +106,38 @@ function depthMap(org, logit) {
       chain.push(p.dn);
       p = p.manager.obj;
     }
+    if (depth > 8) {
+      console.error('whoa', e.cn);
+    }
     if (e.manager && depth > 0) {
       map[depth-1]++;
       count++;
       total += depth;
     }
     if (logit && depth === 2) {
-      console.error(e.cn);
+      // console.error(e.cn);
     }
   });
   console.error(total, count);
   map.push(total/count);
+  return map;
+}
+
+function getDepartments(org) {
+  var map = {};
+  org.forEach(function (e) {
+    var dept = e.deptname;
+    if (dept) {
+      dept = dept.replace(/\(.+\)/g, '');
+      if (dept instanceof Array) {
+        dept = dept[0];
+      }
+      if (!(dept in map)) {
+        map[dept] = 0;
+      }
+      map[dept]++;
+    }
+  });
   return map;
 }
 
@@ -120,11 +158,34 @@ function getLocations(org) {
   return map;
 }
 
+function histogram(a, b) {
+  var largest = 0;
+  var maxDepth = Math.max(a.length, b.length);
+  for (var i = 1; i < maxDepth; i++) {
+    largest = Math.max(Math.max(a[i], b[i]), largest);
+  }
+  var out = '';
+  for (i = 1; i < maxDepth; i++) {
+    out += bar(a[i], largest, '#a44');
+    console.error(a[i], b[i]);
+    out += bar(b[i], largest, '#44a');
+  }
+  return out;
+}
+
+function bar(num, basis, color) {
+  console.error(num, basis);
+  return '<div style="width:' + (num/basis*100) + '%;height: 20px;background:' + color + ';"></div>\n';
+}
+
 var oldDepth = depthMap(old);
 var newDepth = depthMap(latest, true);
 
 var oldLocations = getLocations(old);
 var newLocations = getLocations(latest);
+
+var oldDepts = getDepartments(old);
+var newDepts = getDepartments(latest);
 
 oldDepth.unshift(oldDate);
 newDepth.unshift(latestDate);
@@ -135,6 +196,27 @@ function lastNameCompare(n) {
     var nb = b[n].trim().split(/\s+/).pop() || '';
     return nb < na ? 1 : -1;
   };
+}
+
+function bucketDiff(bucketA, bucketB) {
+  var rows = [];
+  for (var o in bucketA) {
+    var row = [o, bucketA[o], 0, 0];
+    if (o in bucketB) {
+      row[2] = bucketB[o];
+      row[3] = row[2] - row[1];
+    }
+    rows.push(row);
+  }
+  for (var o in bucketB) {
+    if (!(o in bucketA)) {
+      var row = [o, 0, bucketB[o], bucketB[o]];
+      rows.push(row);
+    }
+  }
+  return rows.sort(function (a, b) {
+    return a[2] > b[2] ? -1 : 1;
+  });
 }
 
 departures.sort(lastNameCompare(0));
@@ -163,29 +245,19 @@ console.log(reports.sort(function (a,b) {
   return b[3] - a[3];
 }).map(td).join('\n'));
 
+console.log('\n## Departments\n');
+
+console.log('Name | Old Staff | New Staff | Change \n --- | --- | --- | ---');
+console.log(bucketDiff(oldDepts, newDepts).map(td).join('\n'));
+
 console.log('\n## Depth\n');
 
 console.log('Date | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | Average \n --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---');
 console.log(td(oldDepth));
 console.log(td(newDepth));
 
+console.log(histogram(oldDepth, newDepth));
+
 console.log('\n## Location');
 console.log('Location | Old # | New # | Change \n --- | --- | --- | ---');
-var rows = [];
-for (var o in oldLocations) {
-  var row = [o, oldLocations[o], 0, 0];
-  if (o in newLocations) {
-    row[2] = newLocations[o];
-    row[3] = row[2] - row[1];
-  }
-  rows.push(row);
-}
-for (var o in newLocations) {
-  if (!(o in oldLocations)) {
-    var row = [o, 0, newLocations[o], newLocations[o]];
-    rows.push(row);
-  }
-}
-console.log(rows.sort(function (a, b) {
-  return a[2] > b[2] ? -1 : 1;
-}).map(td).join('\n'));
+console.log(bucketDiff(oldLocations, newLocations).map(td).join('\n'));
