@@ -9,7 +9,7 @@ var opts = require("nomnom").parse();
 
 var bookPath = path.join(__dirname, 'phonebook.json');
 var d = new Date();
-var dstring = d.getFullYear().toString() + ('0' + (d.getMonth() + 1)).substr(-2) + ('0' + (d.getDate() + 1)).substr(-2);
+var dstring = d.getFullYear().toString() + ('0' + (d.getMonth() + 1)).substr(-2) + ('0' + d.getDate()).substr(-2);
 var todayPath = path.join(__dirname, 'phonebook.' + dstring + '.json');
 
 var query = opts._.join(' ');
