@@ -164,6 +164,7 @@ function printCard(person, options) {
   if (person.emailalias) console.log(chalk.cyan(person.emailalias));
   if (person.bugzillaemail) console.log(chalk.cyan(person.bugzillaemail) + ' (bugzilla)');
   if (person.mail && person.mail !== person.bugzillaemail) console.log(chalk.cyan(person.mail));
+  if (person.workdaycostcenter) console.log(person.workdaycostcenter);
   if (person.workdaylocation) console.log(person.workdaylocation);
   if (person.mobile) console.log(person.mobile.join('\n'));
   if (person.im) console.log(person.im.join('\n'));
